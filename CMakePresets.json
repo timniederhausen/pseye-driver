@@ -1,0 +1,74 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 25,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "windows-x86",
+      "displayName": "Windows amd64",
+      "description": "Default Windows build (x86)",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      },
+      "architecture": "win32",
+      "binaryDir": "${sourceDir}/build-win32",
+      "generator": "Visual Studio 17 2022"
+    },
+    {
+      "name": "windows-amd64",
+      "displayName": "Windows amd64",
+      "description": "Default Windows build (amd64)",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      },
+      "architecture": "x64",
+      "binaryDir": "${sourceDir}/build-win64",
+      "generator": "Visual Studio 17 2022"
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "windows-x86",
+      "configurePreset": "windows-x86"
+    },
+    {
+      "name": "windows-amd64",
+      "configurePreset": "windows-amd64"
+    }
+  ],
+  "workflowPresets": [
+    {
+      "name": "windows-x86",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "windows-x86"
+        },
+        {
+          "type": "build",
+          "name": "windows-x86"
+        }
+      ]
+    },
+    {
+      "name": "windows-amd64",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "windows-amd64"
+        },
+        {
+          "type": "build",
+          "name": "windows-amd64"
+        }
+      ]
+    }
+  ]
+}

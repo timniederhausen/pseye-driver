@@ -1,0 +1,11 @@
+# build output folders
+/build*
+
+# checkouts in /external
+/external/*/
+
+# IDEs
+/.idea
+
+# per-user presets
+/CMakeUserPresets.json

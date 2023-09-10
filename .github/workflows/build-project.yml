@@ -1,0 +1,40 @@
+name: Build Project
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+concurrency:
+  group: ${{ github.ref }}-${{ github.workflow }}-${{ github.event_name }}
+  cancel-in-progress: true
+
+jobs:
+  build-windows:
+    name: Windows x86 + amd64
+    runs-on: windows-2022
+    defaults:
+      run:
+        shell: pwsh
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+
+      - name: install deps
+        run: |
+          Invoke-WebRequest -OutFile gclient.zip -Uri "https://github.com/timniederhausen/gclient/archive/refs/heads/master.zip"
+          python -c 'import sys,zipfile;zipfile.ZipFile(sys.argv[1]).extractall()' gclient.zip
+          python gclient-master/gclient.py sync --reset --force --verbose
+
+      - uses: lukka/get-cmake@latest
+
+      - name: Build x86 binaries
+        uses: lukka/run-cmake@v10
+        with:
+          workflowPreset: 'windows-x86'
+
+      - name: Build amd64 binaries
+        uses: lukka/run-cmake@v10
+        with:
+          workflowPreset: 'windows-amd64'
