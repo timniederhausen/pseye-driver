@@ -31,9 +31,9 @@ PSEYE_NS_BEGIN
 // and it's not possible to arbitrarily convert between them (yet) either!
 enum class pixel_format
 {
-  bayer8,   // width * height bytes
-  bayer10,  // 5 * width * height / 4 bytes
-  bayer16,  // width * height * 2 bytes
+  grbg8,    // width * height bytes
+  grbg10,   // 5 * width * height / 4 bytes
+  grbg16,  // width * height * 2 bytes
   bgr888,   // width * height * 3 bytes
   rgb888,   // width * height * 3 bytes
   bgra8888, // width * height * 4 bytes
@@ -46,9 +46,9 @@ enum class pixel_format
 constexpr std::size_t size_bytes(pixel_format output, std::size_t width, std::size_t height)
 {
   switch (output) {
-    case pixel_format::bayer8: return width * height;
-    case pixel_format::bayer10: return 5 * width * height / 4;
-    case pixel_format::bayer16: return width * height * 2;
+    case pixel_format::grbg8: return width * height;
+    case pixel_format::grbg10: return 5 * width * height / 4;
+    case pixel_format::grbg16: return width * height * 2;
     case pixel_format::bgr888: return width * height * 3;
     case pixel_format::rgb888: return width * height * 3;
     case pixel_format::bgra8888: return width * height * 4;
@@ -65,7 +65,8 @@ void convert_frame(pixel_format from,
                    std::span<const std::uint8_t> input_frame,
                    std::span<std::uint8_t> output_frame,
                    std::uint32_t width,
-                   std::uint32_t height);
+                   std::uint32_t height,
+                   bool flip_v = false);
 
 PSEYE_NS_END
 

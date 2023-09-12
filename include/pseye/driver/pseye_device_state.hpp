@@ -44,7 +44,7 @@ struct pseye_device_state
   std::uint32_t width = 0, height = 0;
   // see find_valid_frame_rate() for valid options
   std::uint32_t rate = 60;
-  pixel_format format = pixel_format::bayer8;
+  pixel_format format = pixel_format::grbg8;
   bool enable_auto_gain = true;
   bool enable_auto_white_balance = true;
   std::uint8_t gain = 0;              // [0, 255]
@@ -56,7 +56,7 @@ struct pseye_device_state
   std::uint8_t blue_blc = 128;        // [0, 255]
   std::uint8_t red_blc = 128;         // [0, 255]
   std::uint8_t green_blc = 128;       // [0, 255]
-  bool flip_h = true, flip_v = true;
+  bool flip_h = false, flip_v = false;
   bool enable_test_pattern = false;
 };
 

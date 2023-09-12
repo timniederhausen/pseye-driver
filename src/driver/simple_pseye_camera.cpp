@@ -78,14 +78,14 @@ void simple_pseye_camera::start(size_mode mode, int frame_rate, pixel_format int
   std::uint8_t dsp_ctrl4_value = 0;
 
   switch (state_.format) {
-    case pixel_format::bayer8:
+    case pixel_format::grbg8:
       video_cfg = ov534::make_video_data_settings(ov534::video_format::raw8, ov534::transfer::bulk, payload_size / 4,
                                                   frame_size / 4);
       com7_value |= ov7725::com7_ofmt_processed_bayer;
       dsp_ctrl4_value |= ov7725::dsp_ctrl4_output_raw8;
       write_register(handle_, ov534::start_bayer);
       break;
-    case pixel_format::bayer10:
+    case pixel_format::grbg10:
       video_cfg = ov534::make_video_data_settings(ov534::video_format::raw10, ov534::transfer::bulk, payload_size / 4,
                                                   frame_size / 4);
       com7_value |= ov7725::com7_ofmt_processed_bayer;

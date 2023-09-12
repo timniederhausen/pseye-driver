@@ -43,7 +43,7 @@ public:
   simple_pseye_camera(const simple_pseye_camera&) = delete;
   simple_pseye_camera& operator=(const simple_pseye_camera&) = delete;
 
-  void start(size_mode mode, int frame_rate = 75, pixel_format internal_format = pixel_format::bayer8);
+  void start(size_mode mode, int frame_rate = 75, pixel_format internal_format = pixel_format::grbg8);
   void stop();
 
   const pseye_device_state& state() const { return state_; }
