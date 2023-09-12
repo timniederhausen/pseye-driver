@@ -35,30 +35,41 @@ using hundred_ns = std::chrono::duration<long long, std::ratio_multiply<std::rat
 inline constexpr std::uint64_t one_second_in100_ns = 100 * 100000;
 inline constexpr std::chrono::milliseconds frame_wait_time(10);
 
+inline constexpr bool enable_vga = true;
+inline constexpr bool enable_qvga = true;
+
+// first format is default!
+inline constexpr DShow::VideoFormat supported_formats[] = {
+    DShow::VideoFormat::XRGB, // 32bit RGB, alpha always 255
+    DShow::VideoFormat::YUY2, // YUYV 4:2:2
+    DShow::VideoFormat::UYVY  // UYVY 4:2:2
+};
+
 pseye_camera_filter::pseye_camera_filter()
 {
   PSEYE_LOG_DEBUG("pseye_camera_filter::pseye_camera_filter");
 
-#if !PSEYE_EXCLUDE_VGA
-  for (const int fps : vga_frame_rates) {
-    AddVideoFormat(DShow::VideoFormat::XRGB, 640, 480, one_second_in100_ns / fps);
-    AddVideoFormat(DShow::VideoFormat::UYVY, 640, 480, one_second_in100_ns / fps);
+  if (enable_vga) {
+    for (const auto fps : vga_frame_rates) {
+      for (const auto fmt : supported_formats) {
+        AddVideoFormat(fmt, 640, 480, one_second_in100_ns / fps);
+      }
+    }
   }
-#endif
 
-#if !PSEYE_EXCLUDE_QVGA
-  for (const int fps : qvga_frame_rates) {
-    AddVideoFormat(DShow::VideoFormat::XRGB, 320, 240, one_second_in100_ns / fps);
-    AddVideoFormat(DShow::VideoFormat::UYVY, 320, 240, one_second_in100_ns / fps);
+  if (enable_qvga) {
+    for (const auto fps : qvga_frame_rates) {
+      for (const auto fmt : supported_formats) {
+        AddVideoFormat(fmt, 320, 240, one_second_in100_ns / fps);
+      }
+    }
   }
-#endif
 
   // default
-#if !PSEYE_EXCLUDE_VGA
-  SetVideoFormat(DShow::VideoFormat::UYVY, 640, 480, one_second_in100_ns / vga_frame_rates[0]);
-#elif !PSEYE_EXCLUDE_QVGA
-  SetVideoFormat(VideoFormat::UYVY, 320, 240, one_second_in100_ns / qvga_frame_rates[0]);
-#endif
+  if (enable_vga)
+    SetVideoFormat(supported_formats[0], 640, 480, one_second_in100_ns / vga_frame_rates[0]);
+  else if (enable_qvga)
+    SetVideoFormat(supported_formats[0], 320, 240, one_second_in100_ns / qvga_frame_rates[0]);
 
   worker_thread_ = std::thread(&pseye_camera_filter::run, this);
 
@@ -154,6 +165,17 @@ pixel_format convert_video_format(DShow::VideoFormat format)
   throw std::runtime_error("invalid format");
 }
 
+bool need_to_flip_v(pixel_format native_fmt, pixel_format out_fmt, bool native_flip_v)
+{
+  switch (out_fmt) {
+    case pixel_format::bgr24:
+    case pixel_format::rgb24:
+    case pixel_format::bgra32:
+    case pixel_format::rgba32: return native_fmt == pixel_format::grbg8;
+    default: return false;
+  }
+}
+
 void pseye_camera_filter::process_frame(bool active_previously, bool active, uint64_t filter_time)
 {
   // handle simple state transitions here
@@ -183,12 +205,13 @@ void pseye_camera_filter::process_frame(bool active_previously, bool active, uin
 
   const auto out_fmt = convert_video_format(GetVideoFormat());
   const auto output = std::span(ptr, size_bytes(out_fmt, width_, height_));
+  const bool need_flip = need_to_flip_v(device_->state().format, out_fmt, device_->state().flip_v);
 
   // try to dequeue a frame for |frame_wait_time| between checking if we're asked to stop
   do {
     const auto res = device_->frame_buffer().readable_frame_wait_for(frame_wait_time);
     if (!res.empty()) {
-      convert_frame(device_->state().format, out_fmt, res, output, width_, height_);
+      convert_frame(device_->state().format, out_fmt, res, output, width_, height_, need_flip);
       device_->frame_buffer().finish_reading();
       break;
     }
@@ -213,7 +236,8 @@ bool pseye_camera_filter::ensure_device_exists(bool want_initialized)
     interval_ = GetInterval();
 
     try {
-      device_->start(width_ != 320 ? size_mode::vga : size_mode::qvga, one_second_in100_ns / interval_);
+      device_->start(width_ != 320 ? size_mode::vga : size_mode::qvga, one_second_in100_ns / interval_,
+                     pixel_format::grbg8);
     } catch (std::exception& e) {
       PSEYE_LOG_ERROR("failed to start camera with: w {} h {} fps {}: {}", width_, height_,
                       one_second_in100_ns / interval_, e.what());

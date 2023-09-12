@@ -79,6 +79,7 @@ void simple_pseye_camera::start(size_mode mode, int frame_rate, pixel_format int
 
   switch (state_.format) {
     case pixel_format::grbg8:
+      state_.flip_v = true;
       video_cfg = ov534::make_video_data_settings(ov534::video_format::raw8, ov534::transfer::bulk, payload_size / 4,
                                                   frame_size / 4);
       com7_value |= ov7725::com7_ofmt_processed_bayer;
@@ -86,6 +87,7 @@ void simple_pseye_camera::start(size_mode mode, int frame_rate, pixel_format int
       write_register(handle_, ov534::start_bayer);
       break;
     case pixel_format::grbg10:
+      state_.flip_v = true;
       video_cfg = ov534::make_video_data_settings(ov534::video_format::raw10, ov534::transfer::bulk, payload_size / 4,
                                                   frame_size / 4);
       com7_value |= ov7725::com7_ofmt_processed_bayer;
