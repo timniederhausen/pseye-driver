@@ -116,8 +116,8 @@ enum class reg : std::uint8_t
   unknown_95,
   unknown_indirect_addr,
   unknown_indirect_value,
-  unknown_c0 = 0xc0,
-  unknown_c1,
+  horizontal_blocks = 0xc0,
+  vertical_blocks,
   unknown_c2,
   unknown_c3,
 };
@@ -169,6 +169,7 @@ inline constexpr register_setting<reg> initialization_data[] = {
     {            reg::unknown_93,                                                    0x18},
     {            reg::unknown_94,                                                    0x10},
     {            reg::unknown_95,                                                    0x10},
+
     {                reg::clock0,                                                    0x00},
     {              reg::sys_ctrl, detail::init_sys_ctrl | sys_ctrl_mc_wakeup_reset_enable},
 
@@ -183,36 +184,49 @@ inline constexpr register_setting<reg> initialization_data[] = {
     {reg::unknown_indirect_value,                                                    0x15},
     {reg::unknown_indirect_value,                                                    0x0B},
 
-    {            reg::unknown_8e,                                                    0x40},
-    {            reg::unknown_1f,                                                    0x81},
-    {            reg::unknown_c0,                                                    0x50},
-    {            reg::unknown_c1,                                                    0x3C},
-    {            reg::unknown_c2,                                                    0x01},
-    {            reg::unknown_c3,                                                    0x01},
-    {            reg::unknown_50,                                                    0x89},
-    {            reg::unknown_88,                                                    0x08},
-    {            reg::unknown_8d,                                                    0x00},
-    {            reg::unknown_8e,                                                    0x00},
-
     {                 reg::sd_c1,                                                   0b101},
     {                reg::clock1,                                                   0b100},
-    {            reg::unknown_89,                                                    0x00},
-    {            reg::unknown_76,                                                    0x00},
     {              reg::sys_ctrl,                                   detail::init_sys_ctrl},
     {          reg::regulator_c1,                                                    0xF9},
     {               reg::gpio_c1,                                                    0x42},
     {               reg::gpio_c0,                                                    0xF0},
-    {          reg::camera_clock,                                                   0b100}
+    {          reg::camera_clock,                                                   0b100},
+
+    {            reg::unknown_1f,                                                    0x81},
+
+    {            reg::unknown_50,                                                    0x89},
+    {            reg::unknown_76,                                                    0x00},
+    {            reg::unknown_89,                                                    0x00},
+    {            reg::unknown_8d,                                                    0x00},
+    {            reg::unknown_8e,                                                    0x00},
 };
 
-inline constexpr register_setting<reg> bridge_start_vga[] = {
-    {reg::unknown_c0, 0x50},
-    {reg::unknown_c1, 0x3c},
+inline constexpr register_setting<reg> start_yuv[] = {
+    {reg::unknown_88,                0x00},
+    {reg::unknown_8d, 0b11100 /*0b01000*/},
+    {reg::unknown_8e,          0b10000000},
+
+    {reg::unknown_c2,           0b0001100},
+    {reg::unknown_c3,           0b1101001},
 };
 
-inline constexpr register_setting<reg> bridge_start_qvga[] = {
-    {reg::unknown_c0, 0x28},
-    {reg::unknown_c1, 0x1e},
+inline constexpr register_setting<reg> start_bayer[] = {
+    {reg::unknown_88, 0x08},
+    {reg::unknown_8d, 0x00},
+    {reg::unknown_8e, 0x00},
+
+    {reg::unknown_c2, 0x01},
+    {reg::unknown_c3, 0x01},
+};
+
+inline constexpr register_setting<reg> start_vga[] = {
+    {reg::horizontal_blocks, 640 / 8},
+    {  reg::vertical_blocks, 480 / 8},
+};
+
+inline constexpr register_setting<reg> start_qvga[] = {
+    {reg::horizontal_blocks, 320 / 8},
+    {  reg::vertical_blocks, 240 / 8},
 };
 
 enum class video_format
@@ -254,15 +268,17 @@ constexpr video_data_configuration make_video_data_settings(video_format fmt,
                                                             bool even_odd_byte_swap = false)
 {
   video_data_configuration cfg;
-  cfg.format = (static_cast<std::uint8_t>(fmt) << 5) | (static_cast<std::uint8_t>(tf) << 3) |
+  cfg.format = (static_cast<std::uint8_t>(fmt) << 4) | (static_cast<std::uint8_t>(tf) << 3) |
                (static_cast<std::uint8_t>(enable_still_image_header) << 2) |
                (static_cast<std::uint8_t>(even_odd_byte_swap) << 7);
   cfg.payload_size[0] = payload_size >> 8;
   cfg.payload_size[1] = payload_size & 0xff;
+  // XXX: does this even matter with auto_frame_size? doesn't seem like it
   cfg.frame_size[0] = (frame_size >> 16) & 0xff;
   cfg.frame_size[1] = (frame_size >> 8) & 0xff;
   cfg.frame_size[2] = frame_size & 0xff;
   cfg.cntl[0] |= video_data_configuration::enable_uvc_header_format;
+  // XXX: Without auto_frame_size we don't get anything
   cfg.cntl[1] |= video_data_configuration::auto_frame_size;
   return cfg;
 }

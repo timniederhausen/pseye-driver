@@ -83,12 +83,28 @@ void simple_pseye_camera::start(size_mode mode, int frame_rate, pixel_format int
                                                   frame_size / 4);
       com7_value |= ov7725::com7_ofmt_processed_bayer;
       dsp_ctrl4_value |= ov7725::dsp_ctrl4_output_raw8;
+      write_register(handle_, ov534::start_bayer);
       break;
     case pixel_format::bayer10:
       video_cfg = ov534::make_video_data_settings(ov534::video_format::raw10, ov534::transfer::bulk, payload_size / 4,
                                                   frame_size / 4);
       com7_value |= ov7725::com7_ofmt_processed_bayer;
       dsp_ctrl4_value |= ov7725::dsp_ctrl4_output_raw10;
+      write_register(handle_, ov534::start_bayer);
+      break;
+    case pixel_format::yuyv:
+      video_cfg = ov534::make_video_data_settings(ov534::video_format::yuv422, ov534::transfer::bulk, payload_size / 4,
+                                                  frame_size / 4, false, true);
+      com7_value |= ov7725::com7_ofmt_yuv;
+      dsp_ctrl4_value |= ov7725::dsp_ctrl4_output_yuv;
+      write_register(handle_, ov534::start_yuv);
+      break;
+    case pixel_format::uyvy:
+      video_cfg = ov534::make_video_data_settings(ov534::video_format::yuv422, ov534::transfer::bulk, payload_size / 4,
+                                                  frame_size / 4, false, false);
+      com7_value |= ov7725::com7_ofmt_yuv;
+      dsp_ctrl4_value |= ov7725::dsp_ctrl4_output_yuv;
+      write_register(handle_, ov534::start_yuv);
       break;
     default: throw std::runtime_error("unsupported transfer pixel format");
   }
@@ -98,12 +114,12 @@ void simple_pseye_camera::start(size_mode mode, int frame_rate, pixel_format int
 
   switch (mode) {
     case size_mode::vga:
-      write_register(handle_, ov534::bridge_start_vga);
+      write_register(handle_, ov534::start_vga);
       write_sccb_register(handle_, ov7725::sensor_start_vga);
       com7_value |= ov7725::com7_res_vga;
       break;
     case size_mode::qvga:
-      write_register(handle_, ov534::bridge_start_qvga);
+      write_register(handle_, ov534::start_qvga);
       write_sccb_register(handle_, ov7725::sensor_start_qvga);
       com7_value |= ov7725::com7_res_qvga;
       break;

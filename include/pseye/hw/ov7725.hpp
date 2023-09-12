@@ -270,6 +270,7 @@ inline constexpr std::uint8_t dsp_ctrl2_enable_vert_dcw = bit_3;
 
 // DSP_CTRL2 values
 // TODO: rgb/yuv formats?
+inline constexpr std::uint8_t dsp_ctrl4_output_yuv = 0 << 0;
 inline constexpr std::uint8_t dsp_ctrl4_output_raw8 = 2 << 0;
 inline constexpr std::uint8_t dsp_ctrl4_output_raw10 = 3 << 0;
 

@@ -39,6 +39,7 @@ enum class pixel_format
   bgra8888, // width * height * 4 bytes
   rgba8888, // width * height * 4 bytes
   gray,     // width * height bytes
+  yuyv,     // width * height * 2 bytes
   uyvy,     // width * height * 2 bytes
 };
 
@@ -53,9 +54,10 @@ constexpr std::size_t size_bytes(pixel_format output, std::size_t width, std::si
     case pixel_format::bgra8888: return width * height * 4;
     case pixel_format::rgba8888: return width * height * 4;
     case pixel_format::gray: return width * height;
+    case pixel_format::yuyv: return width * height * 2;
     case pixel_format::uyvy: return width * height * 2;
   }
-  return 0;
+  throw 0;
 }
 
 void convert_frame(pixel_format from,
