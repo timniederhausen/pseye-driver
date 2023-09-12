@@ -28,12 +28,66 @@
 
 PSEYE_NS_BEGIN
 
+namespace
+{
+
+pixel_format convert_video_format(DShow::VideoFormat format)
+{
+  switch (format) {
+    case DShow::VideoFormat::Any: break;
+    case DShow::VideoFormat::Unknown: break;
+    case DShow::VideoFormat::ARGB: return pixel_format::bgra32;
+    case DShow::VideoFormat::XRGB: return pixel_format::bgra32;
+    case DShow::VideoFormat::RGB24: return pixel_format::bgr24;
+    case DShow::VideoFormat::I420: break;
+    case DShow::VideoFormat::NV12: break;
+    case DShow::VideoFormat::YV12: break;
+    case DShow::VideoFormat::Y800: break;
+    case DShow::VideoFormat::P010: break;
+    case DShow::VideoFormat::YVYU: break;
+    case DShow::VideoFormat::YUY2: return pixel_format::yuyv;
+    case DShow::VideoFormat::UYVY: return pixel_format::uyvy;
+    case DShow::VideoFormat::HDYC: break;
+    case DShow::VideoFormat::MJPEG: break;
+    case DShow::VideoFormat::H264: break;
+    case DShow::VideoFormat::HEVC: break;
+  }
+  // shouldn't be reachable!
+  throw std::runtime_error("invalid format");
+}
+
+bool need_to_flip_v(pixel_format native_fmt, pixel_format out_fmt, bool native_flip_v)
+{
+  switch (out_fmt) {
+    case pixel_format::bgr24:
+    case pixel_format::rgb24:
+    case pixel_format::bgra32:
+    case pixel_format::rgba32: return native_fmt == pixel_format::grbg8;
+    default: return false;
+  }
+}
+
+// default values from other drivers:
+pseye_device_state linux_defaults()
+{
+  pseye_device_state state;
+  state.gain = 52;
+  state.hue = 0.0f;
+  state.exposure = 120;
+  state.contrast = 32;
+  state.denoise_threshold = 0;
+  state.flip_h = true;
+  return state;
+}
+
+}
+
 /* ========================================================================= */
 
 using hundred_ns = std::chrono::duration<long long, std::ratio_multiply<std::ratio<100>, std::nano>>;
 
 inline constexpr std::uint64_t one_second_in100_ns = 100 * 100000;
-inline constexpr std::chrono::milliseconds frame_wait_time(10);
+inline constexpr std::chrono::milliseconds frame_wait_time(5);
 
 inline constexpr bool enable_vga = true;
 inline constexpr bool enable_qvga = true;
@@ -140,42 +194,6 @@ void pseye_camera_filter::run()
     device_->stop();
 }
 
-pixel_format convert_video_format(DShow::VideoFormat format)
-{
-  switch (format) {
-    case DShow::VideoFormat::Any: break;
-    case DShow::VideoFormat::Unknown: break;
-    case DShow::VideoFormat::ARGB: return pixel_format::bgra32;
-    case DShow::VideoFormat::XRGB: return pixel_format::bgra32;
-    case DShow::VideoFormat::RGB24: return pixel_format::bgr24;
-    case DShow::VideoFormat::I420: break;
-    case DShow::VideoFormat::NV12: break;
-    case DShow::VideoFormat::YV12: break;
-    case DShow::VideoFormat::Y800: break;
-    case DShow::VideoFormat::P010: break;
-    case DShow::VideoFormat::YVYU: break;
-    case DShow::VideoFormat::YUY2: return pixel_format::yuyv;
-    case DShow::VideoFormat::UYVY: return pixel_format::uyvy;
-    case DShow::VideoFormat::HDYC: break;
-    case DShow::VideoFormat::MJPEG: break;
-    case DShow::VideoFormat::H264: break;
-    case DShow::VideoFormat::HEVC: break;
-  }
-  // shouldn't be reachable!
-  throw std::runtime_error("invalid format");
-}
-
-bool need_to_flip_v(pixel_format native_fmt, pixel_format out_fmt, bool native_flip_v)
-{
-  switch (out_fmt) {
-    case pixel_format::bgr24:
-    case pixel_format::rgb24:
-    case pixel_format::bgra32:
-    case pixel_format::rgba32: return native_fmt == pixel_format::grbg8;
-    default: return false;
-  }
-}
-
 void pseye_camera_filter::process_frame(bool active_previously, bool active, uint64_t filter_time)
 {
   // handle simple state transitions here
@@ -227,7 +245,7 @@ bool pseye_camera_filter::ensure_device_exists(bool want_initialized)
       PSEYE_LOG_WARNING("cannot find/create USB device");
       return false;
     }
-    device_.reset(new simple_pseye_camera(device_handle, {}));
+    device_.reset(new simple_pseye_camera(device_handle, linux_defaults()));
   }
 
   if (want_initialized && !device_->is_active()) {

@@ -37,6 +37,7 @@ enum class size_mode
 };
 
 /// Low-level state of the PlayStation Eye camera device.
+/// NOTE: defaults are from the datasheet if possible!
 struct pseye_device_state
 {
   size_mode mode() const { return width != 320 ? size_mode::vga : size_mode::qvga; }
@@ -47,15 +48,16 @@ struct pseye_device_state
   pixel_format format = pixel_format::grbg8;
   bool enable_auto_gain = true;
   bool enable_auto_white_balance = true;
-  std::uint8_t gain = 0;              // [0, 255]
-  std::uint8_t exposure = 64;         // [0, 255]
-  std::uint8_t denoise_threshold = 0; // [0, 255]
-  std::uint8_t hue = 143;             // [0, 255]
-  std::uint8_t brightness = 0;        // [0, 255]
-  std::uint8_t contrast = 64;         // [0, 255]
-  std::uint8_t blue_blc = 128;        // [0, 255]
-  std::uint8_t red_blc = 128;         // [0, 255]
-  std::uint8_t green_blc = 128;       // [0, 255]
+  std::uint8_t gain = 0;               // [0, 255]
+  std::uint8_t exposure = 64;          // [0, 255]
+  std::uint8_t denoise_threshold = 16; // [0, 63?]
+  float hue = 1.0f;                    // [0, 255]
+  std::uint8_t brightness = 0;         // [0, 255]
+  std::uint8_t contrast = 64;          // [0, 255]
+  std::uint8_t saturation = 128;          // [0, 255]
+  std::uint8_t blue_blc = 128;         // [0, 255]
+  std::uint8_t red_blc = 128;          // [0, 255]
+  std::uint8_t green_blc = 128;        // [0, 255]
   bool flip_h = false, flip_v = false;
   bool enable_test_pattern = false;
 };
@@ -69,8 +71,9 @@ void set_gain(pseye_device_controller& controller, std::uint8_t val);
 void set_exposure(pseye_device_controller& controller, std::uint16_t val);
 void set_denoise_threshold(pseye_device_controller& controller, std::uint8_t val);
 void set_contrast_gain(pseye_device_controller& controller, std::uint8_t val);
+void set_saturation_gain(pseye_device_controller& controller, std::uint8_t val);
 void set_brightness(pseye_device_controller& controller, std::uint8_t val);
-void set_hue(pseye_device_controller& controller, uint8_t val);
+void set_hue(pseye_device_controller& controller, float val);
 void set_red_balance_target(pseye_device_controller& controller, std::uint8_t val);
 void set_blue_balance_target(pseye_device_controller& controller, std::uint8_t val);
 void set_green_balance_target(pseye_device_controller& controller, std::uint8_t val);

@@ -162,15 +162,15 @@ void set_gain(pseye_device_controller& controller, std::uint8_t val)
 void set_exposure(pseye_device_controller& controller, std::uint16_t val)
 {
   // TODO: what's right?
-  write_sccb_register(controller, ov7725::reg::aec_high, val >> 8);
-  write_sccb_register(controller, ov7725::reg::aec_low, val & 0xff);
-  // write_sccb_register(controller, ov7725::reg::aec_high, val >> 7);
-  // write_sccb_register(controller, ov7725::reg::aec_low, val << 1);
+  // write_sccb_register(controller, ov7725::reg::aec_high, val >> 8);
+  // write_sccb_register(controller, ov7725::reg::aec_low, val & 0xff);
+  write_sccb_register(controller, ov7725::reg::aec_high, val >> 7);
+  write_sccb_register(controller, ov7725::reg::aec_low, val << 1);
 }
 
 void set_denoise_threshold(pseye_device_controller& controller, std::uint8_t val)
 {
-  write_sccb_register(controller, ov7725::reg::denoise_thresh_ctrl, 0x10);
+  write_sccb_register(controller, ov7725::reg::denoise_thresh_ctrl, val);
   write_sccb_register(controller, ov7725::reg::denoise_thresh, val);
 }
 
@@ -179,12 +179,18 @@ void set_contrast_gain(pseye_device_controller& controller, std::uint8_t val)
   write_sccb_register(controller, ov7725::reg::contrast_gain, val);
 }
 
+void set_saturation_gain(pseye_device_controller& controller, std::uint8_t val)
+{
+  write_sccb_register(controller, ov7725::reg::u_sat, val);
+  write_sccb_register(controller, ov7725::reg::v_sat, val);
+}
+
 void set_brightness(pseye_device_controller& controller, std::uint8_t val)
 {
   write_sccb_register(controller, ov7725::reg::brightness, val);
 }
 
-void set_hue(pseye_device_controller& controller, uint8_t val)
+void set_hue(pseye_device_controller& controller, float val)
 {
   int hue_cos = static_cast<int>(std::cosf(val) * 0x80);
   int hue_sin = static_cast<int>(std::sinf(val) * 0x80);
@@ -241,6 +247,7 @@ void apply_state(pseye_device_controller& controller, const pseye_device_state& 
   set_hue(controller, state.hue);
   set_brightness(controller, state.brightness);
   set_contrast_gain(controller, state.contrast);
+  set_saturation_gain(controller, state.saturation);
   set_blue_balance_target(controller, state.blue_blc);
   set_red_balance_target(controller, state.red_blc);
   set_green_balance_target(controller, state.green_blc);
