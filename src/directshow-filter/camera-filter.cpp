@@ -134,16 +134,16 @@ pixel_format convert_video_format(DShow::VideoFormat format)
   switch (format) {
     case DShow::VideoFormat::Any: break;
     case DShow::VideoFormat::Unknown: break;
-    case DShow::VideoFormat::ARGB: return pixel_format::bgra8888;
-    case DShow::VideoFormat::XRGB: return pixel_format::bgra8888;
-    case DShow::VideoFormat::RGB24: return pixel_format::bgr888;
+    case DShow::VideoFormat::ARGB: return pixel_format::bgra32;
+    case DShow::VideoFormat::XRGB: return pixel_format::bgra32;
+    case DShow::VideoFormat::RGB24: return pixel_format::bgr24;
     case DShow::VideoFormat::I420: break;
     case DShow::VideoFormat::NV12: break;
     case DShow::VideoFormat::YV12: break;
     case DShow::VideoFormat::Y800: break;
     case DShow::VideoFormat::P010: break;
     case DShow::VideoFormat::YVYU: break;
-    case DShow::VideoFormat::YUY2: break;
+    case DShow::VideoFormat::YUY2: return pixel_format::yuyv;
     case DShow::VideoFormat::UYVY: return pixel_format::uyvy;
     case DShow::VideoFormat::HDYC: break;
     case DShow::VideoFormat::MJPEG: break;

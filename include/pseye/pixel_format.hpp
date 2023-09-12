@@ -31,16 +31,16 @@ PSEYE_NS_BEGIN
 // and it's not possible to arbitrarily convert between them (yet) either!
 enum class pixel_format
 {
-  grbg8,    // width * height bytes
-  grbg10,   // 5 * width * height / 4 bytes
-  grbg16,  // width * height * 2 bytes
-  bgr888,   // width * height * 3 bytes
-  rgb888,   // width * height * 3 bytes
-  bgra8888, // width * height * 4 bytes
-  rgba8888, // width * height * 4 bytes
-  gray,     // width * height bytes
-  yuyv,     // width * height * 2 bytes
-  uyvy,     // width * height * 2 bytes
+  grbg8,  // width * height bytes
+  grbg10, // 5 * width * height / 4 bytes
+  grbg16, // width * height * 2 bytes
+  bgr24,  // width * height * 3 bytes
+  rgb24,  // width * height * 3 bytes
+  bgra32, // width * height * 4 bytes
+  rgba32, // width * height * 4 bytes
+  gray,   // width * height bytes
+  yuyv,   // width * height * 2 bytes
+  uyvy,   // width * height * 2 bytes
 };
 
 constexpr std::size_t size_bytes(pixel_format output, std::size_t width, std::size_t height)
@@ -49,14 +49,16 @@ constexpr std::size_t size_bytes(pixel_format output, std::size_t width, std::si
     case pixel_format::grbg8: return width * height;
     case pixel_format::grbg10: return 5 * width * height / 4;
     case pixel_format::grbg16: return width * height * 2;
-    case pixel_format::bgr888: return width * height * 3;
-    case pixel_format::rgb888: return width * height * 3;
-    case pixel_format::bgra8888: return width * height * 4;
-    case pixel_format::rgba8888: return width * height * 4;
+    case pixel_format::bgr24: return width * height * 3;
+    case pixel_format::rgb24: return width * height * 3;
+    case pixel_format::bgra32: return width * height * 4;
+    case pixel_format::rgba32: return width * height * 4;
     case pixel_format::gray: return width * height;
     case pixel_format::yuyv: return width * height * 2;
     case pixel_format::uyvy: return width * height * 2;
   }
+  // TODO: revisit this, I don't actually plan on throwing that
+  // but I don't want to drag in <stdexcept>
   throw 0;
 }
 
@@ -64,8 +66,8 @@ void convert_frame(pixel_format from,
                    pixel_format to,
                    std::span<const std::uint8_t> input_frame,
                    std::span<std::uint8_t> output_frame,
-                   std::uint32_t width,
-                   std::uint32_t height,
+                   std::size_t width,
+                   std::size_t height,
                    bool flip_v = false);
 
 PSEYE_NS_END
