@@ -27,6 +27,20 @@
 
 PSEYE_NS_BEGIN
 
+namespace {
+
+template <typename Register, std::size_t N>
+void verify_register_sequence(const register_setting<Register> (&a)[N], const register_setting<Register> (&b)[N])
+{
+  for (std::size_t i = 0; i < N; ++i) {
+    if (a[i].reg != b[i].reg || a[i].value != b[i].value)
+      PSEYE_LOG_ERROR("mismatch {}: {} {} != {} {}", i, static_cast<int>(a[i].reg), a[i].value,
+                      static_cast<int>(b[i].reg), b[i].value);
+  }
+}
+
+}
+
 inline constexpr std::size_t transfer_count = 5;
 inline constexpr std::size_t transfer_size = 0x10000;
 
@@ -158,16 +172,14 @@ void simple_pseye_camera::initialize()
                  ov534::sys_ctrl_suspend_enable | ov534::sys_ctrl_mc_wakeup_reset_enable | ov534::sys_ctrl_reset_3 |
                      ov534::sys_ctrl_reset_5);
   write_register(handle_, ov534::reg::reset0, ov534::reset0_vfifo);
-
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  std::this_thread::sleep_for(std::chrono::milliseconds(50));  // wait for stabilization afterwards
 
   // set the SCCB target sensor to our OV772x
   write_register(handle_, ov534::reg::ms_id, 0x42);
 
   // reset sensor
   write_sccb_register(handle_, ov7725::reg::com7, ov7725::com7_sccb_reset);
-
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  std::this_thread::sleep_for(std::chrono::milliseconds(16)); // wait for stabilization afterwards
 
   uint16_t product_id = read_sccb_register(handle_, ov7725::reg::pid) << 8;
   product_id |= read_sccb_register(handle_, ov7725::reg::ver);

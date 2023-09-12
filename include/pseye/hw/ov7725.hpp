@@ -282,39 +282,35 @@ namespace detail
 {
 inline constexpr std::uint8_t init_com13 =
     bit_0 | bit_1 | bit_4 | com13_enable_analog_blc | com13_enable_adc_blc | com13_enable_blc;
-inline constexpr std::uint8_t init_com8 = com8_enable_aec | com8_enable_awb | com8_enable_agc | com8_enable_fine_aec |
-                                          com8_enable_aec_below_banding | com8_aec_step_size_vblank |
-                                          com8_enable_fast_agc_aec;
+inline constexpr std::uint8_t init_com8 =
+    com8_enable_fast_agc_aec | com8_aec_step_size_vblank | com8_enable_banding_filter | com8_enable_aec_below_banding;
 } // namespace detail
 
 inline constexpr register_setting<reg> initialization_data[] = {
-    {         reg::com12,                0x00},
+    {        reg::com12,                                                                    0x00},
 
-    { reg::clock_control,                0x00},
+    {reg::clock_control,                                                                    0x00},
+    {         reg::com4,                                                     bit_0 | com4_pll_4x},
 
-    {          reg::com9,                0x40},
-    {         reg::com10,                0x00},
+    {         reg::com3,                                                                    0xC0},
+    {         reg::com8, detail::init_com8 | com8_enable_agc | com8_enable_awb | com8_enable_aec},
+    {         reg::com9,                                                                    0x40},
+    {        reg::com10,                                                                    0x00},
+    {        reg::com13,                                                      detail::init_com13},
 
-    {     reg::awb_ctrl0,                0xAA},
-    {     reg::awb_ctrl1,                0x87},
-    {     reg::dsp_ctrl3,                0x00},
+    {    reg::awb_ctrl0,                                                                    0xAA},
+    {    reg::dsp_ctrl1,                                                                    0x87},
+    {    reg::dsp_ctrl3,                                                                    0x00},
+    {        reg::aref0,                                                                    0x0F},
+    {         reg::href,                                                                    0x00},
 
-    {         reg::com11,               bit_4},
-    {         reg::aref0,                0x0F},
-    {         reg::com13,  detail::init_com13},
-    {          reg::com4, bit_0 | com4_pll_4x},
-    {          reg::href,                0x00},
-    {       reg::bd_base,                0x7F},
-    {   reg::bd_max_step,                0x03},
-    {           reg::aew,                0x40},
-    {           reg::aeb,                0x30},
-    {           reg::vpt,                0xA1},
-    {         reg::exhch,                0x00},
-    {         reg::exhcl,                0x00},
-    {          reg::com8,   detail::init_com8},
-    {          reg::com3,                0xC0},
-
-    {reg::denoise_thresh,                0x00},
+    {      reg::bd_base,                                                                    0x7F},
+    {  reg::bd_max_step,                                                                    0x03},
+    {          reg::aew,                                                                    0x40},
+    {          reg::aeb,                                                                    0x30},
+    {          reg::vpt,                                                                    0xA1},
+    {        reg::exhch,                                                                    0x00},
+    {        reg::exhcl,                                                                    0x00},
 };
 
 inline constexpr register_setting<reg> sensor_start_vga[] = {
