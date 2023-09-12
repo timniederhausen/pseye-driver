@@ -40,13 +40,13 @@ uvc_frame_processor::status uvc_frame_processor::put(std::span<const std::uint8_
   }
 
   if (0 != (data[1] & UVC_STREAM_ERR)) {
-    PSEYE_LOG_ERROR("UVC_STREAM_ERR set");
+    PSEYE_LOG_ERROR("ERR bit in header: {:#02x}", data[1]);
     discard_frame_ = true;
     return status::need_data;
   }
 
   if (0 == (data[1] & UVC_STREAM_PTS)) {
-    PSEYE_LOG_ERROR("no PTS in header");
+    PSEYE_LOG_ERROR("no PTS in header: {:#02x}", data[1]);
     discard_frame_ = true;
     return status::need_data;
   }
@@ -63,28 +63,35 @@ uvc_frame_processor::status uvc_frame_processor::put(std::span<const std::uint8_
 
     if (current_frame_.empty())
       return status::need_buffer;
-  } else if (data[1] & UVC_STREAM_EOF) {
+  } else if (0 != (data[1] & UVC_STREAM_EOF)) {
     // After an EOF packet, we always begin a new frame.
     last_pts_ = 0;
-    // If this frame doesn't have the correct size, just drop it entirely!
-    if (frame_len_ + (data.size() - header_len) != current_frame_.size())
-      discard_frame_ = true;
-  }
 
-  if (!discard_frame_) {
-    const auto to_copy = data.size() - header_len;
-    if (frame_len_ + to_copy <= current_frame_.size()) {
-      std::memcpy(&current_frame_[frame_len_], &data[header_len], to_copy);
-      frame_len_ += to_copy;
-    } else {
+    // If this frame doesn't have the correct size, just drop it entirely!
+    if (frame_len_ + (data.size() - header_len) != current_frame_.size()) {
+      PSEYE_LOG_DEBUG("incorrect final frame size: {} + {} != {}", frame_len_, (data.size() - header_len),
+                      current_frame_.size());
       discard_frame_ = true;
     }
   }
 
-  // TODO: support shorter reads?
-  // XXX: also, this isn't quite correct yet
-  if (!discard_frame_ && frame_len_ == current_frame_.size())
-    return status::frame_complete;
+  // no progress to be made now, just ask for more data
+  if (discard_frame_)
+    return status::need_data;
+
+  const auto to_copy = data.size() - header_len;
+  if (frame_len_ + to_copy <= current_frame_.size()) {
+    std::memcpy(&current_frame_[frame_len_], &data[header_len], to_copy);
+    frame_len_ += to_copy;
+
+    if (0 != (data[1] & UVC_STREAM_EOF)) {
+      frame_len_ = 0;
+      return status::frame_complete;
+    }
+  } else {
+    PSEYE_LOG_DEBUG("frame overflow: {} + {} > {}", frame_len_, to_copy, current_frame_.size());
+    discard_frame_ = true;
+  }
 
   return status::need_data;
 }
