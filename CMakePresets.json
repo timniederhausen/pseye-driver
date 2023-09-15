@@ -36,11 +36,13 @@
   "buildPresets": [
     {
       "name": "windows-x86",
-      "configurePreset": "windows-x86"
+      "configurePreset": "windows-x86",
+      "configuration": "RelWithDebInfo"
     },
     {
       "name": "windows-amd64",
-      "configurePreset": "windows-amd64"
+      "configurePreset": "windows-amd64",
+      "configuration": "RelWithDebInfo"
     }
   ],
   "workflowPresets": [

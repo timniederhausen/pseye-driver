@@ -38,3 +38,11 @@ jobs:
         uses: lukka/run-cmake@v10
         with:
           workflowPreset: 'windows-amd64'
+
+      - name: Upload archives
+        uses: actions/upload-artifact@v3
+        with:
+          name: directshow-filters
+          path: |
+            build-win32/src/directshow-filter/RelWithDebInfo/pseye-directshow-filter.dll
+            build-win64/src/directshow-filter/RelWithDebInfo/pseye-directshow-filter.dll
