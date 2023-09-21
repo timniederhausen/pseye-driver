@@ -137,7 +137,7 @@ inline constexpr std::uint8_t ms_status_cycle_complete = bit_1;
 inline constexpr std::uint8_t ms_status_slave_ack = 0 << 2;
 inline constexpr std::uint8_t ms_status_slave_nak = 1 << 2;
 
-inline constexpr std::uint8_t sys_ctrl_camera_power = bit_0;
+inline constexpr std::uint8_t sys_ctrl_camera_power_down = bit_0;
 inline constexpr std::uint8_t sys_ctrl_suspend_enable = bit_1;
 inline constexpr std::uint8_t sys_ctrl_wakeup_enable = bit_2;
 inline constexpr std::uint8_t sys_ctrl_reset_3 = bit_3;
@@ -146,8 +146,8 @@ inline constexpr std::uint8_t sys_ctrl_reset_5 = bit_5;
 inline constexpr std::uint8_t sys_ctrl_launch_register_reset = bit_6;
 inline constexpr std::uint8_t sys_ctrl_launch_suspend = bit_7;
 
-inline constexpr std::uint8_t reset0_cif = bit_0;
-inline constexpr std::uint8_t reset0_isp = bit_1;
+inline constexpr std::uint8_t reset0_cif = bit_0; // Camera and ADC Interface
+inline constexpr std::uint8_t reset0_isp = bit_1; // Image Signal Processing
 inline constexpr std::uint8_t reset0_compression = bit_2;
 inline constexpr std::uint8_t reset0_vfifo = bit_3;
 inline constexpr std::uint8_t reset0_audio = bit_4;

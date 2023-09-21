@@ -27,7 +27,8 @@
 
 PSEYE_NS_BEGIN
 
-namespace {
+namespace
+{
 
 template <typename Register, std::size_t N>
 void verify_register_sequence(const register_setting<Register> (&a)[N], const register_setting<Register> (&b)[N])
@@ -39,7 +40,7 @@ void verify_register_sequence(const register_setting<Register> (&a)[N], const re
   }
 }
 
-}
+} // namespace
 
 inline constexpr std::size_t transfer_count = 5;
 inline constexpr std::size_t transfer_size = 0x10000;
@@ -144,6 +145,8 @@ void simple_pseye_camera::start(size_mode mode, int frame_rate, pixel_format int
   write_sccb_register(handle_, ov7725::reg::com7, com7_value);
   apply_state(handle_, state_);
 
+  write_register(handle_, ov534::reg::sys_ctrl,
+                 read_register(handle_, ov534::reg::sys_ctrl) & ~ov534::sys_ctrl_camera_power_down);
   set_camera_led_status(handle_, true);
   write_register(handle_, ov534::reg::reset0, 0x00);
 
@@ -158,7 +161,10 @@ void simple_pseye_camera::stop()
   if (!is_active_)
     return;
 
+  // XXX: OVT driver doesn't reset CIF?
   write_register(handle_, ov534::reg::reset0, ov534::reset0_cif | ov534::reset0_vfifo);
+  write_register(handle_, ov534::reg::sys_ctrl,
+                 read_register(handle_, ov534::reg::sys_ctrl) | ov534::sys_ctrl_camera_power_down);
   set_camera_led_status(handle_, false);
 
   transfer_.stop();
@@ -172,7 +178,7 @@ void simple_pseye_camera::initialize()
                  ov534::sys_ctrl_suspend_enable | ov534::sys_ctrl_mc_wakeup_reset_enable | ov534::sys_ctrl_reset_3 |
                      ov534::sys_ctrl_reset_5);
   write_register(handle_, ov534::reg::reset0, ov534::reset0_vfifo);
-  std::this_thread::sleep_for(std::chrono::milliseconds(50));  // wait for stabilization afterwards
+  std::this_thread::sleep_for(std::chrono::milliseconds(50)); // wait for stabilization afterwards
 
   // set the SCCB target sensor to our OV772x
   write_register(handle_, ov534::reg::ms_id, 0x42);
