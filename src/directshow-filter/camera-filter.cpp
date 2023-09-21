@@ -212,7 +212,6 @@ void pseye_camera_filter::process_frame(bool active_previously, bool active, uin
 
   // check for parameter change
   if (width_ != GetCX() || height_ != GetCY() || interval_ != GetInterval()) {
-    device_->stop();
     if (!ensure_device_exists(true))
       return;
   }
